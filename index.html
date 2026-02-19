@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cleevo Pack">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Cleevo Packing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #273549;
+      --border: #334155;
+      --accent: #38bdf8;
+      --accent2: #0ea5e9;
+      --green: #4ade80;
+      --green2: #22c55e;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --text: #f1f5f9;
+      --text2: #94a3b8;
+      --text3: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo span { color: var(--text); }
+
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── MAIN ── */
+    .main { padding: 20px; max-width: 480px; margin: 0 auto; }
+
+    /* ── SCAN SECTION ── */
+    .scan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .scan-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .scan-input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #trackingInput {
+      flex: 1;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 18px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 1px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    #trackingInput:focus { border-color: var(--accent); }
+    #trackingInput::placeholder { color: var(--text3); font-weight: 400; letter-spacing: 0; }
+
+    .btn-scan {
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
+    }
+
+    .btn-scan:active { background: var(--accent2); transform: scale(0.95); }
+
+    .btn-scan svg { width: 24px; height: 24px; color: #0f172a; }
+
+    /* ── CAMERA SCANNER ── */
+    .camera-wrap {
+      display: none;
+      margin-top: 14px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+
+    .camera-wrap.active { display: block; }
+
+    #cameraFeed {
+      width: 100%;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .scan-overlay {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 220px; height: 120px;
+      border: 3px solid var(--accent);
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+    }
+
+    .scan-line {
+      position: absolute;
+      width: 100%; height: 2px;
+      background: var(--accent);
+      top: 0;
+      animation: scanLine 2s linear infinite;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    @keyframes scanLine {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+
+    .btn-close-cam {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Barlow', sans-serif;
+    }
+
+    /* ── ALERTS ── */
+    .alert {
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      font-size: 15px;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert.show { display: flex; }
+    .alert.error { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+    .alert.success { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.3); color: var(--green); }
+    .alert.info { background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: var(--accent); }
+
+    /* ── LOADING ── */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .loading.show { display: block; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading p {
+      color: var(--text2);
+      font-size: 15px;
+    }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      display: none;
+      animation: slideIn 0.4s ease;
+    }
+
+    .order-card.show { display: block; }
+
+    .order-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+    }
+
+    .order-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56,189,248,0.15);
+      border: 1px solid rgba(56,189,248,0.3);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      font-family: 'Barlow Condensed', sans-serif;
+      margin-bottom: 10px;
+    }
+
+    .order-id {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .order-customer {
+      color: var(--text2);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── PRODUCTS ── */
+    .products-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .product-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .product-item.packed {
+      border-color: var(--green);
+      background: rgba(74,222,128,0.05);
+    }
+
+    .product-img {
+      width: 72px; height: 72px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: var(--bg);
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .product-info { flex: 1; min-width: 0; }
+
+    .product-name {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-code {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: monospace;
+    }
+
+    .product-qty-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .product-qty {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .product-qty-label {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* ── COMPLETE BUTTON ── */
+    .btn-complete {
+      width: 100%;
+      padding: 18px;
+      background: var(--green2);
+      border: none;
+      border-radius: 14px;
+      color: #0f172a;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 20px;
+    }
+
+    .btn-complete:active { transform: scale(0.98); background: #16a34a; }
+    .btn-complete:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; transform: none; }
+
+    /* ── STATION MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 24px 40px;
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      color: var(--text2);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .station-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .station-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .station-btn:active,
+    .station-btn.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0f172a;
+      transform: scale(0.97);
+    }
+
+    .modal-actions { display: flex; gap: 10px; }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text2);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-confirm {
+      flex: 2;
+      padding: 14px;
+      background: var(--green2);
+      border: none;
+      border-radius: 12px;
+      color: #0f172a;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .btn-confirm:disabled {
+      background: var(--border);
+      color: var(--text3);
+      cursor: not-allowed;
+    }
+
+    /* ── OFFLINE BANNER ── */
+    .offline-banner {
+      display: none;
+      background: rgba(251,191,36,0.15);
+      border-bottom: 1px solid rgba(251,191,36,0.3);
+      color: var(--yellow);
+      padding: 8px 16px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .offline-banner.show { display: block; }
+
+    /* ── INSTALL PROMPT ── */
+    .install-banner {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .install-banner.show { display: flex; }
+
+    .install-banner p { flex: 1; font-size: 14px; color: var(--text2); line-height: 1.4; }
+    .install-banner strong { color: var(--text); }
+
+    .btn-install {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-dismiss {
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    /* ── QUEUE BADGE ── */
+    .queue-info {
+      display: none;
+      background: rgba(251,191,36,0.1);
+      border: 1px solid rgba(251,191,36,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: var(--yellow);
+      align-items: center;
+      gap: 8px;
+    }
+
+    .queue-info.show { display: flex; }
+  </style>
+</head>
+<body>
+
+<!-- Offline Banner -->
+<div class="offline-banner" id="offlineBanner">
+  ⚡ You're offline — scans will sync when connection returns
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">CLEEVO <span>PACK</span></div>
+  <div class="status-dot" id="statusDot"></div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Install Prompt -->
+  <div class="install-banner" id="installBanner">
+    <p><strong>Add to Home Screen</strong><br>Install for faster access & offline use</p>
+    <button class="btn-install" id="btnInstall">Install</button>
+    <button class="btn-dismiss" id="btnDismiss">×</button>
+  </div>
+
+  <!-- Offline Queue Info -->
+  <div class="queue-info" id="queueInfo">
+    <span>📦</span>
+    <span id="queueText">0 scans queued, waiting to sync...</span>
+  </div>
+
+  <!-- Scan Card -->
+  <div class="scan-card">
+    <div class="scan-title">📷 Scan Shipping Label</div>
+    <div class="scan-input-wrap">
+      <input type="text" id="trackingInput" placeholder="Tracking number..." autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+      <button class="btn-scan" id="btnCamera" title="Open Camera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Camera Feed -->
+    <div class="camera-wrap" id="cameraWrap">
+      <video id="cameraFeed" autoplay playsinline muted></video>
+      <div class="scan-overlay"><div class="scan-line"></div></div>
+      <button class="btn-close-cam" id="btnCloseCam">✕ Close</button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert error" id="alertError"></div>
+  <div class="alert success" id="alertSuccess"></div>
+  <div class="alert info" id="alertInfo"></div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Looking up order...</p>
+  </div>
+
+  <!-- Order Details -->
+  <div class="order-card" id="orderCard">
+
+    <div class="order-header">
+      <div class="order-badge">✓ ORDER FOUND</div>
+      <div class="order-id">Order #<span id="orderId"></span></div>
+      <div class="order-customer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="customerName"></span>
+      </div>
+    </div>
+
+    <div class="products-title">📦 Items to Pack</div>
+
+    <div class="products-list" id="productsList"></div>
+
+    <button class="btn-complete" id="btnComplete">
+      ✅ MARK COMPLETE
+    </button>
+
+  </div>
+
+</div>
+
+<!-- Station Modal -->
+<div class="modal-overlay" id="stationModal">
+  <div class="modal">
+    <div class="modal-title">Select Your Station</div>
+    <div class="modal-sub">Which packing station are you at?</div>
+    <div class="station-grid" id="stationGrid"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancelStation">Cancel</button>
+      <button class="btn-confirm" id="btnConfirmStation" disabled>Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG - UPDATE THIS WITH YOUR APPS SCRIPT WEB APP URL
+// ═══════════════════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKNu_Fg5I21lxEewWYhYkmmDQGiyecYZBJWqm7KtIKw08c1JvXW3nzMGucxZvtIlYv/exec';
+const STATIONS = 8; // Number of packing stations
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let currentOrder = null;
+let selectedStation = null;
+let isOnline = navigator.onLine;
+let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+let deferredInstallPrompt = null;
+let cameraStream = null;
+let barcodeDetector = null;
+let scanCooldown = false;
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initStationGrid();
+  initEventListeners();
+  initOnlineStatus();
+  initInstallPrompt();
+  updateQueueBadge();
+  
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  }
+
+  // Try to sync queue on load
+  if (isOnline && offlineQueue.length > 0) {
+    syncOfflineQueue();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// STATION GRID
+// ═══════════════════════════════════════════════════════
+function initStationGrid() {
+  const grid = document.getElementById('stationGrid');
+  for (let i = 1; i <= STATIONS; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'station-btn';
+    btn.textContent = i;
+    btn.dataset.station = i;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedStation = i;
+      document.getElementById('btnConfirmStation').disabled = false;
+    });
+    grid.appendChild(btn);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ═══════════════════════════════════════════════════════
+function initEventListeners() {
+  // Tracking input - enter key
+  document.getElementById('trackingInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      const val = e.target.value.trim();
+      if (val) lookupOrder(val);
+    }
+  });
+
+  // Camera button
+  document.getElementById('btnCamera').addEventListener('click', openCamera);
+  document.getElementById('btnCloseCam').addEventListener('click', closeCamera);
+
+  // Complete button
+  document.getElementById('btnComplete').addEventListener('click', () => {
+    showStationModal();
+  });
+
+  // Station modal
+  document.getElementById('btnCancelStation').addEventListener('click', hideStationModal);
+  document.getElementById('btnConfirmStation').addEventListener('click', confirmComplete);
+
+  // Install banner
+  document.getElementById('btnInstall').addEventListener('click', installApp);
+  document.getElementById('btnDismiss').addEventListener('click', () => {
+    document.getElementById('installBanner').classList.remove('show');
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// ONLINE/OFFLINE
+// ═══════════════════════════════════════════════════════
+function initOnlineStatus() {
+  const updateStatus = () => {
+    isOnline = navigator.onLine;
+    document.getElementById('offlineBanner').classList.toggle('show', !isOnline);
+    document.getElementById('statusDot').classList.toggle('offline', !isOnline);
+    if (isOnline && offlineQueue.length > 0) syncOfflineQueue();
+  };
+  window.addEventListener('online', updateStatus);
+  window.addEventListener('offline', updateStatus);
+  updateStatus();
+}
+
+// ═══════════════════════════════════════════════════════
+// CAMERA SCANNER
+// ═══════════════════════════════════════════════════════
+async function openCamera() {
+  try {
+    const wrap = document.getElementById('cameraWrap');
+    const video = document.getElementById('cameraFeed');
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+
+    video.srcObject = cameraStream;
+    wrap.classList.add('active');
+
+    // Use BarcodeDetector if available
+    if ('BarcodeDetector' in window) {
+      barcodeDetector = new BarcodeDetector({ formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code'] });
+      startBarcodeDetection(video);
+    } else {
+      // Fallback: ZXing
+      loadZXing(video);
+    }
+
+  } catch (err) {
+    showError('Camera access denied. Please allow camera permission.');
+  }
+}
+
+function startBarcodeDetection(video) {
+  const detect = async () => {
+    if (!cameraStream) return;
+    try {
+      const barcodes = await barcodeDetector.detect(video);
+      if (barcodes.length > 0 && !scanCooldown) {
+        const code = barcodes[0].rawValue;
+        scanCooldown = true;
+        playBeep();
+        closeCamera();
+        document.getElementById('trackingInput').value = code;
+        lookupOrder(code);
+        setTimeout(() => scanCooldown = false, 2000);
+        return;
+      }
+    } catch (e) {}
+    requestAnimationFrame(detect);
+  };
+  requestAnimationFrame(detect);
+}
+
+function loadZXing(video) {
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
+  script.onload = () => {
+    const codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromVideoElement(video, (result, err) => {
+      if (result && !scanCooldown) {
+        scanCooldown = true;
+        playBeep();
+        closeCamera();
+        codeReader.reset();
+        document.getElementById('trackingInput').value = result.getText();
+        lookupOrder(result.getText());
+        setTimeout(() => scanCooldown = false, 2000);
+      }
+    });
+  };
+  document.head.appendChild(script);
+}
+
+function closeCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('cameraWrap').classList.remove('active');
+  document.getElementById('cameraFeed').srcObject = null;
+}
+
+// ═══════════════════════════════════════════════════════
+// SOUND ALERT
+// ═══════════════════════════════════════════════════════
+function playBeep(type = 'scan') {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'scan') {
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } else if (type === 'complete') {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    } else if (type === 'error') {
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// ORDER LOOKUP
+// ═══════════════════════════════════════════════════════
+async function lookupOrder(trackingNumber) {
+  showLoading(true);
+  hideAlerts();
+  hideOrderCard();
+
+  if (!isOnline) {
+    showLoading(false);
+    showError('You are offline. Cannot look up orders without internet.');
+    playBeep('error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${APPS_SCRIPT_URL}?action=getOrder&tracking=${encodeURIComponent(trackingNumber)}`, {
+      method: 'GET',
+    });
+
+    // Apps Script returns via google.script.run, so we use the URL approach
+    // Actually call via the standard method
+    callAppsScript('getOrderByTracking', [trackingNumber], displayOrder, handleError);
+
+  } catch (err) {
+    showLoading(false);
+    showError('Connection error. Check your internet.');
+    playBeep('error');
+  }
+}
+
+function callAppsScript(funcName, args, successCb, errorCb) {
+  // Since we're outside Google Apps Script, we use fetch to call the web app
+  const url = new URL(APPS_SCRIPT_URL);
+  url.searchParams.set('func', funcName);
+  url.searchParams.set('args', JSON.stringify(args));
+
+  fetch(url.toString())
+    .then(r => r.json())
+    .then(data => successCb(data))
+    .catch(err => errorCb(err));
+}
+
+function displayOrder(result) {
+  showLoading(false);
+
+  if (!result || !result.success) {
+    showError(result ? result.error : 'Order not found');
+    playBeep('error');
+    return;
+  }
+
+  if (!result.products || result.products.length === 0) {
+    showError('No products found for this order');
+    playBeep('error');
+    return;
+  }
+
+  playBeep('scan');
+  currentOrder = result.orderId;
+
+  document.getElementById('orderId').textContent = result.orderId || 'N/A';
+  document.getElementById('customerName').textContent = result.customer || 'N/A';
+
+  const list = document.getElementById('productsList');
+  list.innerHTML = '';
+
+  result.products.forEach(product => {
+    const item = document.createElement('div');
+    item.className = 'product-item';
+    item.innerHTML = `
+      <img class="product-img"
+           src="${product.image || 'https://via.placeholder.com/72'}"
+           alt="${product.name || ''}"
+           onerror="this.src='https://via.placeholder.com/72?text=?'">
+      <div class="product-info">
+        <div class="product-name">${product.name || 'Unknown'}</div>
+        ${product.code ? `<div class="product-code">${product.code}</div>` : ''}
+      </div>
+      <div class="product-qty-wrap">
+        <div class="product-qty">${product.quantity || 0}</div>
+        <div class="product-qty-label">QTY</div>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+
+  document.getElementById('orderCard').classList.add('show');
+  document.getElementById('btnComplete').disabled = false;
+  document.getElementById('trackingInput').value = '';
+}
+
+function handleError(error) {
+  showLoading(false);
+  const msg = error?.message || error?.toString() || 'Unknown error';
+  showError('Error: ' + msg);
+  playBeep('error');
+}
+
+// ═══════════════════════════════════════════════════════
+// COMPLETE ORDER
+// ═══════════════════════════════════════════════════════
+function showStationModal() {
+  selectedStation = null;
+  document.querySelectorAll('.station-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('btnConfirmStation').disabled = true;
+  document.getElementById('stationModal').classList.add('show');
+}
+
+function hideStationModal() {
+  document.getElementById('stationModal').classList.remove('show');
+}
+
+async function confirmComplete() {
+  if (!selectedStation || !currentOrder) return;
+
+  hideStationModal();
+
+  const btn = document.getElementById('btnComplete');
+  btn.disabled = true;
+  btn.textContent = '⏳ Saving...';
+
+  const payload = { orderId: currentOrder, station: 'Station ' + selectedStation };
+
+  if (!isOnline) {
+    // Queue for later
+    offlineQueue.push({ ...payload, timestamp: new Date().toISOString() });
+    localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+    updateQueueBadge();
+    playBeep('complete');
+    showSuccess(`Order #${currentOrder} saved offline! Will sync when online.`);
+    setTimeout(resetScreen, 2500);
+    return;
+  }
+
+  try {
+    callAppsScript('markOrderComplete', [currentOrder, 'Station ' + selectedStation],
+      (result) => {
+        btn.disabled = false;
+        btn.textContent = '✅ MARK COMPLETE';
+        if (result && result.success) {
+          playBeep('complete');
+          showSuccess(`Order #${currentOrder} packed! ✓`);
+          setTimeout(resetScreen, 2000);
+        } else {
+          showError('Failed: ' + (result?.error || 'Unknown error'));
+        }
+      },
+      (err) => {
+        btn.disabled = false;
+        btn.textContent = '✅ MARK COMPLETE';
+        showError('Connection error. Try again.');
+      }
+    );
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✅ MARK COMPLETE';
+    showError('Error: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// OFFLINE QUEUE SYNC
+// ═══════════════════════════════════════════════════════
+async function syncOfflineQueue() {
+  if (offlineQueue.length === 0) return;
+
+  showInfo(`Syncing ${offlineQueue.length} offline scan(s)...`);
+
+  const toSync = [...offlineQueue];
+  offlineQueue = [];
+  localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+  updateQueueBadge();
+
+  for (const item of toSync) {
+    await new Promise(resolve => {
+      callAppsScript('markOrderComplete', [item.orderId, item.station],
+        resolve, resolve
+      );
+    });
+  }
+
+  showSuccess(`Synced ${toSync.length} offline scan(s)!`);
+}
+
+function updateQueueBadge() {
+  const badge = document.getElementById('queueInfo');
+  const text = document.getElementById('queueText');
+  if (offlineQueue.length > 0) {
+    text.textContent = `${offlineQueue.length} scan${offlineQueue.length > 1 ? 's' : ''} queued, waiting to sync...`;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('show', show);
+  document.getElementById('trackingInput').disabled = show;
+}
+
+function hideAlerts() {
+  document.getElementById('alertError').classList.remove('show');
+  document.getElementById('alertSuccess').classList.remove('show');
+  document.getElementById('alertInfo').classList.remove('show');
+}
+
+function showError(msg) {
+  const el = document.getElementById('alertError');
+  el.textContent = '❌ ' + msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('alertSuccess');
+  el.textContent = '✅ ' + msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function showInfo(msg) {
+  const el = document.getElementById('alertInfo');
+  el.textContent = 'ℹ️ ' + msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function hideOrderCard() {
+  document.getElementById('orderCard').classList.remove('show');
+}
+
+function resetScreen() {
+  currentOrder = null;
+  hideOrderCard();
+  hideAlerts();
+  document.getElementById('btnComplete').textContent = '✅ MARK COMPLETE';
+  document.getElementById('btnComplete').disabled = false;
+  document.getElementById('trackingInput').value = '';
+  document.getElementById('trackingInput').focus();
+}
+
+// ═══════════════════════════════════════════════════════
+// PWA INSTALL
+// ═══════════════════════════════════════════════════════
+function initInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('installBanner').classList.remove('show');
+    deferredInstallPrompt = null;
+  });
+}
+
+async function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('installBanner').classList.remove('show');
+  }
+  deferredInstallPrompt = null;
+}
+</script>
+</body>
+</html>
